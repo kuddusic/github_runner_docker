@@ -9,11 +9,11 @@
 
 services:
   runner:
-    image: gh-runner:2.337.0
+    image: gh-runner:2.338.0
     build:
       context: .
       args:
-        RUNNER_VERSION: "2.337.0"
+        RUNNER_VERSION: "2.338.0"
     restart: unless-stopped
     stop_grace_period: 60s   # time for every runner to deregister on stop
     volumes:

@@ -1,6 +1,6 @@
 # Self-hosted GitHub Actions runner in Docker
 
-One container that runs self-hosted GitHub Actions runners (version **2.337.0**) for **all private repositories** of a GitHub account.
+One container that runs self-hosted GitHub Actions runners (version **2.338.0**) for **all private repositories** of a GitHub account.
 
 A personal GitHub account has no account-wide runners: a runner can only be registered against a single repository. So the container discovers every repository of `GITHUB_OWNER` that the token can administer and keeps one runner process alive for each. New repositories are picked up automatically (every `REFRESH_INTERVAL` seconds), and runners for repositories that disappear are stopped.
 
@@ -12,7 +12,7 @@ Jump to: [token](#1-create-the-access-token-minimum-privileges) · [configure](#
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Ubuntu 24.04 + runner 2.337.0 (checksum verified) + Docker CLI |
+| `Dockerfile` | Ubuntu 24.04 + runner 2.338.0 (checksum verified) + Docker CLI |
 | `entrypoint.sh` | Supervisor: finds repositories, starts, restarts and stops one runner per repository, gets access to the Docker socket |
 | `runner.sh` | Registers and runs a single repository runner, deregisters on stop |
 | `docker-compose.yml` | The service definition |
