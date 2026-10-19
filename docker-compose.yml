@@ -1,0 +1,33 @@
+# A personal GitHub account has no account-level runners, so a runner can only be registered
+# against one repository. This single container discovers every repository of GITHUB_OWNER
+# that the token can administer and keeps one runner process alive for each of them.
+# New repositories are picked up automatically (every REFRESH_INTERVAL seconds).
+#
+# Start:            docker compose up -d --build
+# More parallelism: docker compose up -d --scale runner=2
+#                   (every repository then gets two runners, so two jobs at once)
+
+services:
+  runner:
+    image: gh-runner:2.337.0
+    build:
+      context: .
+      args:
+        RUNNER_VERSION: "2.337.0"
+    restart: unless-stopped
+    stop_grace_period: 60s   # time for every runner to deregister on stop
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${RUNNER_WORK_ROOT:-/opt/github_runner_work}:${RUNNER_WORK_ROOT:-/opt/github_runner_work}
+    environment:
+      GITHUB_OWNER: ${GITHUB_OWNER:?Set GITHUB_OWNER in .env}
+      GITHUB_PAT: ${GITHUB_PAT:?Set GITHUB_PAT in .env}
+      RUNNER_WORK_ROOT: ${RUNNER_WORK_ROOT:-/opt/github_runner_work}
+      RUNNER_LABELS: ${RUNNER_LABELS:-homelab,docker}
+      EPHEMERAL: ${EPHEMERAL:-true}              # one job per runner, then re-register: clean state
+      REPO_INCLUDE: ${REPO_INCLUDE:-}            # e.g. "repo-a,repo-b"; empty = all repositories
+      REPO_EXCLUDE: ${REPO_EXCLUDE:-}            # e.g. "scratch,old-stuff"
+      INCLUDE_PUBLIC: ${INCLUDE_PUBLIC:-false}   # keep false: fork PRs could run code on your host
+      INCLUDE_FORKS: ${INCLUDE_FORKS:-false}
+      REFRESH_INTERVAL: ${REFRESH_INTERVAL:-300}
+      DISABLE_UPDATE: ${DISABLE_UPDATE:-false}   # true = never self-update (you must bump the version)
