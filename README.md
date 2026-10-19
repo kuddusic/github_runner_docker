@@ -6,7 +6,7 @@ A personal GitHub account has no account-wide runners: a runner can only be regi
 
 Runners are **ephemeral** by default: each runner takes one job, deregisters, and registers again, so every job starts clean.
 
-Jump to: [token](#1-create-the-access-token-minimum-privileges) · [configure](#2-configure) · [start](#3-start) · [**Mac setup with `/opt/github_runner_work`**](#running-on-a-mac-docker-desktop-with-optgithub_runner_work) · [settings](#settings) · [security](#security) · [troubleshooting](#troubleshooting)
+Jump to: [token](#1-create-the-access-token-minimum-privileges) · [configure](#2-configure) · [start](#3-start) · [**Mac setup with `/opt/github_runner_work`**](#running-on-a-mac-docker-desktop-with-optgithub_runner_work) · [**Linux setup**](#running-on-linux) · [settings](#settings) · [security](#security) · [troubleshooting](#troubleshooting)
 
 ## Files
 
@@ -155,6 +155,52 @@ The last line proves that jobs can bind-mount their workspace. It should list th
 - Jobs run in **Linux** (`runs-on: [self-hosted, linux, ...]`). Builds that need macOS itself (Xcode, signing) need a native macOS runner, not this container.
 - On Apple Silicon the runner is arm64. Docker images that exist only for amd64 need `--platform linux/amd64` and run emulated and slower.
 - The work folders for stopped runners can remain as empty folders under `/opt/github_runner_work`. Run `docker compose down` first, then you can delete them.
+
+## Running on Linux
+
+Works on any Linux host with Docker Engine and the Compose plugin (x86_64 or arm64). Unlike on a Mac, there is no VM and no file-sharing step: the work folder is a plain host directory.
+
+### A. Install Docker
+
+Follow https://docs.docker.com/engine/install/ for your distribution, then check:
+
+```bash
+docker --version
+docker compose version
+```
+
+### B. Prepare the work folder
+
+```bash
+sudo mkdir -p /opt/github_runner_work
+sudo chown "$USER": /opt/github_runner_work
+```
+
+The runner user inside the container needs to write here. If you see `Work folder ... is not writable`, find the container user's id with `docker compose run --rm --entrypoint id runner` and `sudo chown` the folder to that uid (or, as a last resort, `chmod 777` it).
+
+### C. Configure and start
+
+```bash
+cp .env.example .env
+chmod 600 .env
+sed -i 's|^RUNNER_WORK_ROOT=.*|RUNNER_WORK_ROOT=/opt/github_runner_work|' .env   # edit GITHUB_PAT and GITHUB_OWNER too
+docker compose up -d --build
+docker compose logs -f
+```
+
+Verify with the same checks as in the Mac section, step D (`docker compose exec runner docker ps`, and the `runner-test` workflow).
+
+### D. Keep it running
+
+- Enable Docker at boot: `sudo systemctl enable --now docker`. The container has `restart: unless-stopped`, so it comes back by itself.
+- If you use SELinux (Fedora, RHEL), the bind mounts may be blocked. Label the work folder with `sudo chcon -Rt container_file_t /opt/github_runner_work`, and expect the Docker socket to need `security_opt: [label=disable]` on the service.
+- Rootless Docker or Podman: the socket is not `/var/run/docker.sock`. Change the host side of the socket line under `volumes:` in `docker-compose.yml` (for rootless Docker: `${XDG_RUNTIME_DIR}/docker.sock:/var/run/docker.sock`).
+
+### Linux notes
+
+- The Docker socket's group is detected automatically, so no `DOCKER_GID` setting is needed.
+- Jobs run natively (no emulation) on the host's CPU type.
+- Security: the socket gives jobs root-equivalent access to the host itself, not to a VM. Prefer a dedicated VM or machine (see Security).
 
 ## Settings
 
