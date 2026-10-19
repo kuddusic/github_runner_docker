@@ -1,0 +1,38 @@
+# Accepted vulnerabilities, used only by the gating Trivy scan (the SARIF report still lists them).
+# All of these are in third-party code bundled in the image that we do not build; they are
+# fixed by upgrading the runner or the Docker packages. The image only runs our own CI jobs.
+# Remove an entry once the upstream release that fixes it is in the image.
+
+# npm bundled in actions/runner externals/node20 and node24 (fixed in a newer runner release)
+CVE-2026-59873 # tar (CRITICAL)
+CVE-2026-23745
+CVE-2026-23950
+CVE-2026-24842
+CVE-2026-26960
+CVE-2026-29786
+CVE-2026-31802
+CVE-2026-59874
+CVE-2026-73566
+CVE-2026-102276 # brace-expansion
+CVE-2026-102278
+CVE-2026-13149
+CVE-2026-14257
+CVE-2026-69152
+CVE-2024-21538 # cross-spawn
+CVE-2025-64756 # glob
+CVE-2026-69192 # ip-address
+CVE-2026-26996 # minimatch
+CVE-2026-27903
+CVE-2026-27904
+CVE-2026-9496  # pacote
+CVE-2026-48815 # sigstore
+CVE-2026-19534 # undici
+
+# .NET System.Security.Cryptography.Pkcs in the runner (Runner.*.deps.json)
+CVE-2026-84008
+
+# Go binaries of docker-buildx / docker-compose from the Docker apt repository
+CVE-2026-17106 # moby/go-archive
+CVE-2026-78667 # Go stdlib
+CVE-2026-78669 # golang.org/x/net
+CVE-2026-97031 # Go stdlib
