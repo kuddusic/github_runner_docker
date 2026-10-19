@@ -13,7 +13,7 @@ env:
 
 jobs:
   build-scan-push:
-    runs-on: self-hosted,linux,homelab,docker
+    runs-on: [self-hosted, linux, homelab, docker]
     permissions:
       contents: read
       packages: write
